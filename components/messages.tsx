@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import supabase from '../utils/supabase'
 
 type Message = {
@@ -13,6 +13,9 @@ type Message = {
 
 export default function Messages() {
   const [messages, setMessages] = useState<Message[]>([])
+  const messagesRef = useRef<HTMLDivElement>(null)
+
+  console.log({ messagesRef })
 
   const getData = async () => {
     const { data } = await supabase
@@ -25,6 +28,10 @@ export default function Messages() {
     }
 
     setMessages(data)
+
+    if (messagesRef.current) {
+      messagesRef.current.scrollTop = messagesRef.current.scrollHeight
+    }
   }
 
   useEffect(() => {
@@ -49,7 +56,7 @@ export default function Messages() {
   console.log({ messages })
 
   return (
-    <div className="flex-1 overflow-y-scroll bg-pink-200">
+    <div className="flex-1 overflow-y-scroll bg-pink-200" ref={messagesRef}>
       <ul className="flex flex-col justify-end space-y-1 p-4">
         {messages.map((message) => (
           <li

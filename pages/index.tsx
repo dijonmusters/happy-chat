@@ -22,6 +22,19 @@ const Home: NextPage = () => {
     }
   }
 
+  const handleCreateRoom = async () => {
+    await supabase.from('rooms').insert({}, { returning: 'minimal' })
+
+    const { data } = await supabase
+      .from('rooms')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single()
+
+    console.log({ data })
+  }
+
   return (
     <div className="flex h-screen flex-col items-center justify-center">
       <Head>
@@ -30,7 +43,15 @@ const Home: NextPage = () => {
       </Head>
 
       <main className="flex h-full w-full flex-1 flex-col items-stretch bg-blue-400 py-10 px-20 text-gray-800">
-        <h1 className="bg-green-200 px-4 py-2 text-4xl">Happy Chat</h1>
+        <h1 className="bg-green-200 px-4 py-2 text-4xl">
+          Happy Chat
+          <button
+            className="ml-4 rounded border bg-red-200 p-2 text-xs"
+            onClick={handleCreateRoom}
+          >
+            New room
+          </button>
+        </h1>
         <Messages />
         <form onSubmit={handleSubmit} className="bg-red-200 p-2">
           <Input type="text" name="message" />

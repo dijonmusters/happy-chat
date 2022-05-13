@@ -1,7 +1,7 @@
 import { Input, Button } from '@supabase/ui'
 import supabase from '../utils/supabase'
 
-export default function Login() {
+export default function Register() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const { email, username, password } = Object.fromEntries(
