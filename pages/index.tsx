@@ -1,38 +1,29 @@
 import type { NextPage } from 'next'
 import Head from 'next/head'
 import supabase from '../utils/supabase'
-import { Input } from '@supabase/ui'
-import Messages from '../components/messages'
+import { useRouter } from 'next/router'
+import Link from 'next/link'
+
+type Room = {
+  id: string
+  created_at: string
+  name: string | null
+}
 
 const Home: NextPage = () => {
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    const form = e.currentTarget
-    const { message } = Object.fromEntries(new FormData(form))
-
-    if (typeof message === 'string' && message.trim().length !== 0) {
-      form.reset()
-      const { error } = await supabase
-        .from('messages')
-        .insert({ content: message })
-
-      if (error) {
-        alert(error.message)
-      }
-    }
-  }
+  const router = useRouter()
 
   const handleCreateRoom = async () => {
-    await supabase.from('rooms').insert({}, { returning: 'minimal' })
+    const { data, error } = await supabase.rpc<Room>('create_room').single()
 
-    const { data } = await supabase
-      .from('rooms')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .single()
+    if (error) {
+      alert(error.message)
+      return
+    }
 
-    console.log({ data })
+    if (data) {
+      router.push(`/rooms/${data.id}`)
+    }
   }
 
   return (
@@ -51,11 +42,10 @@ const Home: NextPage = () => {
           >
             New room
           </button>
+          <Link href="/rooms/3e1e202e-a007-4ac3-a910-03dbbc2af9e0">
+            <a>Join the classic room!</a>
+          </Link>
         </h1>
-        <Messages />
-        <form onSubmit={handleSubmit} className="bg-red-200 p-2">
-          <Input type="text" name="message" />
-        </form>
       </main>
     </div>
   )

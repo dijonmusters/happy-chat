@@ -1,3 +1,4 @@
+import { profile } from 'console'
 import { useEffect, useState, useRef } from 'react'
 import supabase from '../utils/supabase'
 
@@ -7,11 +8,18 @@ type Message = {
   content: string
   profile_id: string
   profile: {
+    id: string
     username: string
   }
 }
 
-export default function Messages() {
+type MessagesProps = {
+  roomId: string
+}
+
+let profileCache: any = {}
+
+export default function Messages({ roomId }: MessagesProps) {
   const [messages, setMessages] = useState<Message[]>([])
   const messagesRef = useRef<HTMLDivElement>(null)
 
@@ -20,12 +28,20 @@ export default function Messages() {
   const getData = async () => {
     const { data } = await supabase
       .from<Message>('messages')
-      .select('*, profile: profiles(username)')
+      .select('*, profile: profiles(id, username)')
+      .match({ room_id: roomId })
+      .order('created_at')
 
     if (!data) {
       alert('no data')
       return
     }
+
+    data
+      .map((message) => message.profile)
+      .forEach((profile) => {
+        profileCache[profile.id] = profile
+      })
 
     setMessages(data)
 
@@ -40,9 +56,16 @@ export default function Messages() {
 
   useEffect(() => {
     const subscription = supabase
-      .from<Message>('messages')
-      .on('INSERT', () => {
-        getData()
+      .from<Message>(`messages:room_id=eq.${roomId}`)
+      .on('INSERT', (payload) => {
+        // TODO: add new user to cache if their profile doesn't exist
+        setMessages((current) => [
+          ...current,
+          { ...payload.new, profile: profileCache[payload.new.profile_id] },
+        ])
+        if (messagesRef.current) {
+          messagesRef.current.scrollTop = messagesRef.current.scrollHeight
+        }
       })
       .subscribe()
 
