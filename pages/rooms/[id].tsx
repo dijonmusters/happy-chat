@@ -1,7 +1,7 @@
 import Head from 'next/head'
 import supabase from '../../utils/supabase'
 import { Input } from '@supabase/ui'
-import Messages from '../../components/messages'
+import Messages, { Profile } from '../../components/messages'
 import { useRouter } from 'next/router'
 
 export default function Room() {
@@ -25,6 +25,32 @@ export default function Room() {
     }
   }
 
+  const handleInvite = async (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      const target = e.currentTarget
+
+      const { data } = await supabase
+        .from<Profile>('profiles')
+        .select('id, username')
+        .match({ username: target.value })
+        .single()
+
+      if (!data) {
+        return alert('No user found!')
+      }
+
+      const { error } = await supabase
+        .from('room_participants')
+        .insert({ profile_id: data.id, room_id: roomId })
+
+      if (error) {
+        return alert(error.message)
+      }
+
+      target.value = ''
+    }
+  }
+
   return (
     <div className="flex h-screen flex-col items-center justify-center">
       <Head>
@@ -33,7 +59,10 @@ export default function Room() {
       </Head>
 
       <main className="flex h-full w-full flex-1 flex-col items-stretch bg-blue-400 py-10 px-20 text-gray-800">
-        <h1 className="bg-green-200 px-4 py-2 text-4xl">Happy Chat</h1>
+        <div className="flex justify-between bg-green-200 px-4 py-2">
+          <h1 className="text-4xl">Happy Chat</h1>
+          <Input type="text" onKeyPress={handleInvite} />
+        </div>
         {roomId && <Messages roomId={roomId} />}
         <form onSubmit={handleSubmit} className="bg-red-200 p-2">
           <Input type="text" name="message" />
