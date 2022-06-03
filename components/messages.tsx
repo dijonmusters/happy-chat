@@ -132,6 +132,7 @@ export default function Messages({ roomId }: MessagesProps) {
       <ul className="flex flex-col justify-end space-y-1 p-4">
         {messages.map((message) => (
           <Message
+            key={message.id}
             message={message}
             profile={profileCache[message.profile_id]}
             setProfileCache={setProfileCache}

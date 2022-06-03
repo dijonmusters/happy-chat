@@ -3,6 +3,7 @@ import supabase from '../../utils/supabase'
 import { Input } from '@supabase/ui'
 import Messages, { Profile } from '../../components/messages'
 import { useRouter } from 'next/router'
+import Link from 'next/link'
 
 export default function Room() {
   const router = useRouter()
@@ -60,7 +61,11 @@ export default function Room() {
 
       <main className="flex h-full w-full flex-1 flex-col items-stretch bg-blue-400 py-10 px-20 text-gray-800">
         <div className="flex justify-between bg-green-200 px-4 py-2">
-          <h1 className="text-4xl">Happy Chat</h1>
+          <h1 className="text-4xl">
+            <Link href="/">
+              <a>Happy Chat</a>
+            </Link>
+          </h1>
           <Input type="text" onKeyPress={handleInvite} />
         </div>
         {roomId && <Messages roomId={roomId} />}
