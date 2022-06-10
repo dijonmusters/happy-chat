@@ -1,26 +1,6 @@
 import { useEffect, useState, useRef, Dispatch, SetStateAction } from 'react'
 import supabase from '../utils/supabase'
-
-export type Profile = {
-  id: string
-  username: string
-}
-
-type Message = {
-  id: string
-  created_at: string
-  content: string
-  profile_id: string
-  profile?: Profile
-}
-
-type MessagesProps = {
-  roomId: string
-}
-
-type ProfileCache = {
-  [userId: string]: Profile
-}
+import { Message, MessagesProps, Profile, ProfileCache } from '../utils/types'
 
 const Message = ({
   message,
@@ -70,10 +50,13 @@ const Message = ({
   )
 }
 
-export default function Messages({ roomId }: MessagesProps) {
+export default function Messages({
+  roomId,
+  profileCache,
+  setProfileCache,
+}: MessagesProps) {
   const [messages, setMessages] = useState<Message[]>([])
   const messagesRef = useRef<HTMLDivElement>(null)
-  const [profileCache, setProfileCache] = useState<ProfileCache>({})
 
   const getData = async () => {
     const { data } = await supabase

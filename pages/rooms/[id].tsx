@@ -1,13 +1,36 @@
 import Head from 'next/head'
 import supabase from '../../utils/supabase'
 import { Input } from '@supabase/ui'
-import Messages, { Profile } from '../../components/messages'
+import Messages from '../../components/messages'
 import { useRouter } from 'next/router'
-import Link from 'next/link'
+import UserList from '../../components/user-list'
+import { Profile, ProfileCache } from '../../utils/types'
+import { useEffect, useState } from 'react'
+import Header from '../../components/header'
 
 export default function Room() {
+  const [profileCache, setProfileCache] = useState<ProfileCache>({})
+  const [roomName, setRoomName] = useState<string>('')
   const router = useRouter()
   const roomId = router.query.id as string
+
+  useEffect(() => {
+    const getRoomName = async () => {
+      const { data } = await supabase
+        .from('rooms')
+        .select('name')
+        .match({
+          id: roomId,
+        })
+        .single()
+
+      setRoomName(data.name ?? 'Untitled')
+    }
+
+    if (roomId) {
+      getRoomName()
+    }
+  }, [roomId])
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -52,6 +75,25 @@ export default function Room() {
     }
   }
 
+  const handleRoomRename = async () => {
+    const newName = prompt('What would you like to rename to?')
+    const oldName = roomName
+    if (!newName) return
+    setRoomName(newName)
+
+    const { error } = await supabase
+      .from('rooms')
+      .update({ name: newName })
+      .match({
+        id: roomId,
+      })
+
+    if (error) {
+      setRoomName(oldName)
+      alert(error.message)
+    }
+  }
+
   return (
     <div className="flex h-screen flex-col items-center justify-center">
       <Head>
@@ -60,18 +102,25 @@ export default function Room() {
       </Head>
 
       <main className="flex h-full w-full flex-1 flex-col items-stretch bg-blue-400 py-10 px-20 text-gray-800">
+        <Header />
+
         <div className="flex justify-between bg-green-200 px-4 py-2">
-          <h1 className="text-4xl">
-            <Link href="/">
-              <a>Happy Chat</a>
-            </Link>
-          </h1>
+          <button className="text-4xl" onClick={handleRoomRename}>
+            {roomName}
+          </button>
           <Input type="text" onKeyPress={handleInvite} />
         </div>
-        {roomId && <Messages roomId={roomId} />}
+        {roomId && (
+          <Messages
+            roomId={roomId}
+            profileCache={profileCache}
+            setProfileCache={setProfileCache}
+          />
+        )}
         <form onSubmit={handleSubmit} className="bg-red-200 p-2">
           <Input type="text" name="message" />
         </form>
+        <UserList profileCache={profileCache} />
       </main>
     </div>
   )

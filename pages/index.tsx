@@ -4,6 +4,7 @@ import supabase from '../utils/supabase'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
+import Header from '../components/header'
 
 type Room = {
   id: string
@@ -51,6 +52,7 @@ const Home: NextPage = () => {
       </Head>
 
       <main className="flex h-full w-full flex-1 flex-col items-stretch bg-blue-400 py-10 px-20 text-gray-800">
+        <Header />
         <h1 className="bg-green-200 px-4 py-2 text-4xl">
           <Link href="/">
             <a>Happy Chat</a>
@@ -62,6 +64,7 @@ const Home: NextPage = () => {
             New room
           </button>
         </h1>
+
         <div className="flex-1 bg-pink-200 p-4">
           {rooms.map((room) => (
             <div key={room.id}>
